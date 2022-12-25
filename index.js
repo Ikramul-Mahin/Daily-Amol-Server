@@ -3,7 +3,7 @@ const cors = require('cors')
 const app = express()
 const port = process.env.PORT || 5000
 require('dotenv').config();
-const { MongoClient, ServerApiVersion } = require('mongodb');
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 //MIDDLE
 app.use(cors())
 app.use(express.json())
@@ -19,6 +19,24 @@ async function run() {
         const usersCollection = client.db('daily-amols').collection('users')
         const amolsCollection = client.db('daily-amols').collection('amols')
 
+
+        //veryfie guider
+        const veryfieGuider = async (req, res, next) => {
+            const decodedEmail = req.decoded.email
+            const query = { email: decodedEmail }
+            const user = await usersCollection.findOne(query)
+            if (user?.role !== "guider") {
+                return res.status(403).send({ message: "forbidden access" })
+            }
+            next()
+        }
+        // guider individual
+        app.get('/users/guider/:email', async (req, res) => {
+            const email = req.params.email
+            const query = { email }
+            const user = await usersCollection.findOne(query)
+            res.send({ isGuider: user?.role === "guider" })
+        })
         //post single user 
         app.post('/users', async (req, res) => {
             const user = req.body
@@ -52,6 +70,12 @@ async function run() {
             const query = {}
             const result = await amolsCollection.find(query).sort({ date: -1 }).toArray()
             // console.log(result)
+            res.send(result)
+        })
+        app.delete('/amols/:id', async (req, res) => {
+            const id = req.params.id
+            const query = { _id: ObjectId(id) }
+            const result = await amolsCollection.deleteOne(query)
             res.send(result)
         })
 
