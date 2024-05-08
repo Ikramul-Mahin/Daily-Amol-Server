@@ -1,7 +1,7 @@
 const express = require('express')
 const cors = require('cors')
 const app = express()
-const port = process.env.PORT || 3000
+const port = process.env.PORT || 5000
 require('dotenv').config();
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 //MIDDLE
@@ -25,7 +25,7 @@ async function run() {
             const decodedEmail = req.decoded.email
             const query = { email: decodedEmail }
             const user = await usersCollection.findOne(query)
-            if (user?.role !== "guider") {
+            if (user?.role !== "seller") {
                 return res.status(403).send({ message: "forbidden access" })
             }
             next()
@@ -35,7 +35,7 @@ async function run() {
             const email = req.params.email
             const query = { email }
             const user = await usersCollection.findOne(query)
-            res.send({ isGuider: user?.role === "guider" })
+            res.send({ isGuider: user?.role === "seller" })
         })
         //post single user 
         app.post('/users', async (req, res) => {
